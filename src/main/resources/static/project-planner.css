@@ -1,0 +1,29 @@
+body {
+	margin: 8px;
+}
+
+h1, h2, h3, h4, h5 {
+	margin-top: 12px;
+	margin-bottom: 2px;
+}
+
+.form-heading {
+	padding-top: 8px;
+	font-weight: bold;
+}
+
+form {
+	padding-top: 4px;
+	padding-bottom: 4px;
+}
+
+.loader.is-active{
+	background-color:rgba(0,0,0,.35);
+}
+
+details > span {
+	margin-left: 24px;
+	padding: 8px;
+	display: inline-block;
+	background-color: lightgray;
+}

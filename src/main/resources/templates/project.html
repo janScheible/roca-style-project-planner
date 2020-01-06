@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang=en>
+	<head>
+		<meta charset=utf-8>
+		<meta name="turbolinks-cache-control" content="no-cache">
+		
+		<title th:text="'Project \'' + ${projectName} + '\''"></title>
+
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+		
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pure-css-loader@3.3.3/dist/css-loader.css">
+		
+		<script src="https://cdn.jsdelivr.net/npm/turbolinks@5.2.0/dist/turbolinks.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/stimulus@1.1.1/dist/stimulus.umd.js"></script>
+		
+		<link rel="stylesheet" th:href="@{/project-planner.css}">
+		<script th:src="@{/project-planner.js}"></script>
+	</head>
+	<body>
+		<div id="css-loader" class="loader loader-default"></div>
+
+		<h1 th:text="'Project \'' + ${projectName} + '\''"></h1>
+		
+		<details id="project-actions">
+			<summary>Project actions:</summary>
+			<span>
+				<div class="form-heading">Update project</div>
+				<form data-controller="form" data-action="submit->form#submitForm" th:action="@{/project}" method="POST" class="project">
+					<input type="hidden" name="_method" value="PUT">
+
+					<input type="hidden" name="projectId" th:value="${projectId}">
+					<input type="hidden" name="projectRevision" th:value="${projectRevision}">
+
+					<label>Name
+						<input name="name" type="text" th:value="${projectName}">
+					</label>
+
+					<button type="submit">Update</button>
+				</form>	
+
+				<div class="form-heading">Add milestone</div>
+				<form data-controller="form" data-action="submit->form#submitForm" th:action="@{/project/milestones}" method="POST" class="project">
+					<input type="hidden" name="projectId" th:value="${projectId}">
+					<input type="hidden" name="projectRevision" th:value="${projectRevision}">
+
+					<label>Name
+						<input name="name" type="text">
+					</label>
+
+					<label>
+						Position
+						<select name="position">
+							<option th:each="milestonePosition: ${milestonePositions}" 
+									th:value="${milestonePosition.key}" th:text="${milestonePosition.value}"></option>
+						</select>
+					</label>
+
+					<button type="submit">Add</button>
+				</form>
+
+				<th:block th:if="${milestones.size() > 0}">
+					<div class="form-heading">Delete milestone</div>
+					<form data-controller="form" data-action="submit->form#submitForm" th:action="@{/project/milestones}" method="POST" class="project">
+						<input type="hidden" name="_method" value="DELETE">
+
+						<input type="hidden" name="projectId" th:value="${projectId}">
+						<input type="hidden" name="projectRevision" th:value="${projectRevision}">
+
+						<label>
+							Milestone
+							<select name="milestoneId">
+								<option th:each="milestone: ${milestones}"
+										th:value="${milestone.key}" th:text="${milestone.value}"></option>
+							</select>
+						</label>
+
+						<button type="submit">Delete</button>
+					</form>	
+				</th:block>
+			</span>
+		</details>
+	
+		<th:block th:each="milestone,milestoneIter: ${milestones}">
+			<h2 th:text="${milestoneIter.index + 1} + '. Milestone \'' + ${milestone.value} + '\''"></h2>
+			
+			<details th:id="'milestone-actions-' + ${milestoneIter.index + 1}">
+				<summary>Milestone actions:</summary>
+				<span>			
+					<div class="form-heading">Add task</div>
+					<form data-controller="form" data-action="submit->form#submitForm" th:action="@{/project/tasks}" method="POST" class="milestone">
+						<input type="hidden" name="projectId" th:value="${projectId}">
+						<input type="hidden" name="projectRevision" th:value="${projectRevision}">
+						<input type="hidden" name="milestoneId" th:value="${milestone.key}">
+
+						<label>
+							Name
+							<input name="name" type="text">
+						</label>
+
+						<label>
+							Position
+							<select name="position">
+								<option th:each="taskPosition: ${taskPositionsFunction.apply(milestone.key)}"
+										th:value="${taskPosition.key}" th:text="${taskPosition.value}"></option>
+							</select>
+						</label>
+
+						<button type="submit">Add</button>
+					</form>
+
+					<th:block th:if="${tasksFunction.apply(milestone.key).size() > 0}">
+						<div class="form-heading">Delete task</div>
+						<form data-controller="form" data-action="submit->form#submitForm" th:action="@{/project/tasks}" method="POST" class="milestone">
+							<input type="hidden" name="_method" value="DELETE">
+
+							<input type="hidden" name="projectId" th:value="${projectId}">
+							<input type="hidden" name="projectRevision" th:value="${projectRevision}">
+							<input type="hidden" name="milestoneId" th:value="${milestone.key}">
+
+							<label>
+								Task
+								<select name="taskId">
+									<option th:each="task: ${tasksFunction.apply(milestone.key)}"
+											th:value="${task.key}" th:text="${task.value}"></option>
+								</select>
+							</label>
+
+							<button type="submit">Delete</button>
+						</form>
+					</th:block>
+				</span>
+			</details>
+			
+			<th:block th:each="task, taskIter : ${tasksFunction.apply(milestone.key)}">
+				<h3 th:text="${milestoneIter.index + 1} + '.' + ${taskIter.index + 1} + '. Task \'' + ${task.value} + '\''"></h3>
+				
+				<details th:id="'task-actions-' + ${milestoneIter.index + 1} + '-' + ${taskIter.index + 1}">
+					<summary>Task actions:</summary>
+					<span>		
+						<div class="form-heading">Update task</div>
+						<form data-controller="form" data-action="submit->form#submitForm" th:action="@{/project/tasks}" method="POST" class="task">
+							<input type="hidden" name="_method" value="PUT">
+
+							<input type="hidden" name="projectId" th:value="${projectId}">
+							<input type="hidden" name="projectRevision" th:value="${projectRevision}">
+							<input type="hidden" name="milestoneId" th:value="${milestone.key}">
+							<input type="hidden" name="taskId" th:value="${task.key}">
+
+							<label>Url
+								<input name="url" type="text" size="50" th:value="${taskUrlFunction.apply(milestone.key, task.key)}">
+							</label>
+
+							<button type="submit">Update</button>
+						</form>
+					</span>
+				</details>
+				
+				<th:block th:if="${!taskUrlFunction.apply(milestone.key, task.key).isEmpty()}">
+					<span>Url: </span>
+					<a th:href="${taskUrlFunction.apply(milestone.key, task.key)}" th:text="${taskUrlFunction.apply(milestone.key, task.key)}"></a>
+				</th:block>
+			</th:block>
+		</th:block>
+	</body>
+</html>
